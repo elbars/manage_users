@@ -2,10 +2,10 @@
 
 galaxy_info:
   role_name: "manage_users"
-  author: "New Cloud Technologies, Ltd"
-  company: "New Cloud Technologies, Ltd"
+  author: "Ltd"
+  company: "Ltd"
   description: "Configures users and their SSH keys on Linux"
-  license: "see license in nct_license.txt"
+  license: "see LICENSE file"
   min_ansible_version: "2.10"
   platforms:
     - name: "EL"
@@ -13,5 +13,7 @@ galaxy_info:
         - 7
   galaxy_tags:
     - "system"
+    - "users"
+    - "linux"
 
 dependencies: []
