@@ -1,0 +1,72 @@
+---
+
+- name: "ensure that all users are unique"
+  assert:
+    that: >
+      linux_users | default([]) | map(attribute="name") | list | count
+      ==
+      linux_users | default([]) | map(attribute="name") | list | unique | count
+
+- name: "manage user groups"
+  ansible.builtin.group:
+    name:   "{{ item.group  | default(item.name) }}"
+    system: "{{ item.system | default(false) }}"
+    gid:    "{{ item.gid    | default(omit) }}"
+    state:  present
+  with_items: "{{ linux_users | default([]) }}"
+
+- name: "manage user accounts"
+  ansible.builtin.user:
+    name:                 "{{ item.name                 | default() }}"
+    group:                "{{ item.group                | default(item.name) }}"
+    groups:               "{{ item.groups               | default(item.name) }}"
+    home:                 "{{ item.home                 | default(omit) }}"
+    uid:                  "{{ item.uid                  | default(omit) }}"
+    append:               "{{ item.append               | default(omit) }}"
+    state:                "{{ item.state                | default('present') }}"
+    comment:              "{{ item.comment              | default(omit) }}"
+    password:             "{{ item.password             | default('*') }}"
+    update_password:      "{{ item.update_password      | default('on_create') }}"
+    system:               "{{ item.system               | default(omit) }}"
+    shell:                "{{ item.shell                | default(omit) }}"
+    create_home:          "{{ item.create_home          | default(omit) }}"
+    move_home:            "{{ item.move_home            | default(omit) }}"
+    skeleton:             "{{ item.skeleton             | default(omit) }}"
+    expires:              "{{ item.expires              | default(omit) }}"
+    remove:               "{{ item.remove               | default(omit) }}"
+    force:                "{{ item.force                | default(omit) }}"
+    non_unique:           "{{ item.non_unique           | default(omit) }}"
+    generate_ssh_key:     "{{ item.generate_ssh_key     | default(omit) }}"
+    ssh_key_bits:         "{{ item.ssh_key_bits         | default(omit) }}"
+    ssh_key_comment:      "{{ item.ssh_key_comment      | default(omit) }}"
+    ssh_key_file:         "{{ item.ssh_key_file         | default(omit) }}"
+    ssh_key_passphrase:   "{{ item.ssh_key_passphrase   | default(omit) }}"
+    ssh_key_type:         "{{ item.ssh_key_type         | default(omit) }}"
+    ssh_fingerprint:      "{{ item.ssh_fingerprint      | default(omit) }}"
+    password_expire_max:  "{{ item.password_expire_max  | default(omit) }}"
+    password_expire_min:  "{{ item.password_expire_min  | default(omit) }}"
+    ssh_public_key:       "{{ item.ssh_public_key       | default(omit) }}"
+    stderr:               "{{ item.stderr               | default(omit) }}"
+    stdout:               "{{ item.stdout               | default(omit) }}"
+  no_log: "{{ item.no_log | default(true if item.password | default() else false) }}"
+  when:
+    - item.name | default() and item.name != "root"
+  with_items: "{{ linux_users }}"
+
+- name: "manage user SSH keys"
+  ansible.posix.authorized_key:
+    user: "{{ item.0.name | default() }}"
+    key: "{{ item.1 }}"
+    path: "{{ item.0.home | default('/home/' + item.0.name) }}/{{ authorized_keys_file }}"
+  when:
+    - item.0.state | default("present") not in ["absent"]
+    - item.0.create_home | default(true)
+  with_subelements:
+    - "{{ linux_users }}"
+    - ssh_key
+    - skip_missing: true
+
+- name: "add or delete file to sudoers.d"
+  ansible.builtin.include_tasks: "sudoers.yml"
+  with_items: "{{ linux_users }}"
+  when: item.use_sudo is defined

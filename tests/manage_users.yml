@@ -1,0 +1,6 @@
+---
+
+- hosts: some_cluster
+  become: true
+  roles:
+    - { role: ../../manage_users }

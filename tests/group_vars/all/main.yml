@@ -1,0 +1,47 @@
+---
+
+ansible_python_interpreter: "/usr/bin/python3"
+
+linux_users:
+  - name: "foo"
+    groups:
+      - "foo"
+      - "root"
+    uid: 2000
+    use_sudo: true
+    update_password: "always"
+    ssh_key:
+      - "ssh-rsa AAAAA.... foo@machine"
+      - "ssh-rsa BBBBB.... foo2@machine"
+    state: present
+
+  - name: "bar"
+    group: "custom"
+    groups:
+      - "custom"
+      - "root"
+    update_password: "always"
+    uid: 2001
+    use_sudo: true
+    sudo_nopasswd: true
+    create_home: true
+    state: present
+
+  - name: "nobody"
+    append: true
+    comment: "Nobody"
+    create_home: false
+    home: "/"
+    password: "*"
+    shell: "/sbin/nologin"
+    state: present
+
+  - name: "vasya"
+    use_sudo: true
+    create_home: true
+    home: "/home/test_vasya"
+    update_password: "always"
+    ssh_key:
+      - "ssh-rsa AAAAA.... foo@machine"
+      - "ssh-rsa BBBBB.... foo2@machine"
+    state: present

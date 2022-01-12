@@ -1,0 +1,4 @@
+---
+
+authorized_keys_file: ".ssh/authorized_keys"
+linux_users: []
